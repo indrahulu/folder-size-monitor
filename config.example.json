@@ -1,0 +1,10 @@
+{
+  "database": "infrastruktur",
+  "site": "pdns1",
+  "measurement": "ukuran_folder",
+  "paths": [
+    {"path": "/mnt/docker/volumes/api_app"},
+    {"path": "/mnt/docker/volumes/api_db"},
+    {"path": "/srv/data/uploads", "label": "uploads"}
+  ]
+}
