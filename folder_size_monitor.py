@@ -12,7 +12,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-CONFIG_PATH = os.getenv("FOLDER_MONITOR_CONFIG", "/etc/folder-size-monitor.json")
+CONFIG_PATH = os.getenv("FOLDER_MONITOR_CONFIG", str(Path(__file__).resolve().with_name("config.json")))
 INFLUX_URL = os.getenv("INFLUX_URL", "http://docker2-pdn1:8181").rstrip("/")
 INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
 if not INFLUX_TOKEN:

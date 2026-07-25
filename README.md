@@ -15,8 +15,8 @@ Tujuannya adalah menyimpan snapshot ukuran folder secara berkala supaya nanti bi
 ## Alur kerja
 
 1. Clone repo ke server Debian yang ingin dimonitor.
-2. Copy dan sesuaikan file config dan env.
-3. Install script ke lokasi yang mudah dipanggil, misalnya `/usr/local/bin/folder-size-monitor`.
+2. Copy dan sesuaikan file `.env` dan `config.json` di folder repo.
+3. Simpan repo di folder kerja server, misalnya `/docker-projects/folder-size-monitor`.
 4. Tambahkan cron job via `crontab -e`.
 5. Setiap 3 jam, script membaca daftar folder target, menjalankan `du` untuk masing-masing folder, lalu menulis hasil ke InfluxDB.
 
@@ -50,17 +50,17 @@ cd folder-size-monitor
 
 ### 2) Siapkan file environment
 
-Salin file contoh menjadi file aktif:
+Salin file contoh menjadi file aktif di folder repo:
 
 ```bash
-cp .env.example /etc/folder-size-monitor.env
-chmod 600 /etc/folder-size-monitor.env
+cp .env.example .env
+chmod 600 .env
 ```
 
 Lalu edit file tersebut:
 
 ```bash
-nano /etc/folder-size-monitor.env
+nano .env
 ```
 
 ### Penjelasan `.env`
@@ -72,7 +72,6 @@ INFLUX_URL=http://docker2-pdn1:8181
 INFLUX_DB=infrastruktur
 INFLUX_TOKEN=replace-me
 SITE=pdns1
-FOLDER_MONITOR_CONFIG=/etc/folder-size-monitor.json
 DU_TIMEOUT_SEC=120
 ```
 
@@ -94,26 +93,22 @@ Arti tiap variabel:
   - penanda lokasi atau site server
   - dipakai sebagai tag data
 
-- `FOLDER_MONITOR_CONFIG`
-  - path file config JSON yang berisi daftar folder target
-  - default yang disarankan: `/etc/folder-size-monitor.json`
-
 - `DU_TIMEOUT_SEC`
   - batas waktu maksimal `du` untuk satu folder
   - jika folder sangat besar, `du` bisa lambat; timeout mencegah job menggantung terlalu lama
 
 ### 3) Siapkan config folder
 
-Salin contoh config menjadi file aktif:
+Salin contoh config menjadi file aktif di folder repo:
 
 ```bash
-cp config.example.json /etc/folder-size-monitor.json
+cp config.example.json config.json
 ```
 
 Lalu edit sesuai folder yang ingin dipantau pada server itu:
 
 ```bash
-nano /etc/folder-size-monitor.json
+nano config.json
 ```
 
 ### Penjelasan `config.json`
@@ -165,11 +160,9 @@ atau:
 
 `label` bersifat opsional dan dipakai sebagai tag tambahan kalau ingin memberi nama yang lebih mudah dibaca daripada path panjang.
 
-### 4) Install script ke PATH
+### 4) Jalankan langsung dari folder repo
 
-```bash
-install -m 0755 folder_size_monitor.py /usr/local/bin/folder-size-monitor
-```
+Tidak perlu install ke PATH. Script dijalankan langsung dari folder repo.
 
 ### 5) Tambahkan cron job
 
@@ -182,13 +175,13 @@ crontab -e
 Tambahkan baris ini:
 
 ```cron
-0 */3 * * * . /etc/folder-size-monitor.env; /usr/local/bin/folder-size-monitor >> /var/log/folder-size-monitor.log 2>&1
+0 */3 * * * cd /docker-projects/folder-size-monitor && . ./.env && /usr/bin/python3 ./folder_size_monitor.py >> /var/log/folder-size-monitor.log 2>&1
 ```
 
 Maknanya:
 - jalan setiap 3 jam
-- load variabel dari `/etc/folder-size-monitor.env`
-- jalankan script monitor
+- load variabel dari `.env` di folder repo
+- jalankan script monitor dari folder repo
 - simpan log ke `/var/log/folder-size-monitor.log`
 
 ## Penjelasan output data
@@ -229,8 +222,9 @@ Tetap disarankan:
 Setelah setup, coba jalankan manual:
 
 ```bash
-. /etc/folder-size-monitor.env
-/usr/local/bin/folder-size-monitor
+cd /docker-projects/folder-size-monitor
+. ./.env
+/usr/bin/python3 ./folder_size_monitor.py
 ```
 
 Lalu cek:
